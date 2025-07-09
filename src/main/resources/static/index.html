@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Добавить пользователя</title>
+</head>
+<body>
+<h1>Добавить нового пользователя</h1>
+
+<form id="userForm">
+  <label>
+    Имя:
+    <input type="text" id="username" required />
+  </label>
+  <br />
+  <label>
+    Email:
+    <input type="email" id="email" required />
+  </label>
+  <br />
+  <label>
+    Аватарка:
+    <input type="file" id="avatarFile" accept="image/*" />
+  </label>
+  <br />
+  <button type="submit">Добавить пользователя</button>
+</form>
+
+<p id="message"></p>
+
+<button id="goToUsersBtn">Посмотреть всех пользователей</button>
+
+<script>
+  const form = document.getElementById('userForm');
+  const message = document.getElementById('message');
+  const goToUsersBtn = document.getElementById('goToUsersBtn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    message.textContent = 'Добавляем пользователя...';
+
+    try {
+      let avatarUri = null;
+
+      const fileInput = document.getElementById('avatarFile');
+      if (fileInput.files.length > 0) {
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        const uploadResp = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+        if (!uploadResp.ok) throw new Error('Ошибка при загрузке аватара');
+
+        const uploadData = await uploadResp.json();
+        avatarUri = uploadData.uri;
+      }
+
+      const userData = {
+        username: document.getElementById('username').value,
+        email: document.getElementById('email').value,
+        avatarUri: avatarUri
+      };
+
+      const createResp = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      });
+
+      if (!createResp.ok) throw new Error('Ошибка при создании пользователя');
+
+      const createData = await createResp.json();
+
+      message.textContent = `Пользователь добавлен с ID: ${createData.id}`;
+      form.reset();
+
+    } catch (err) {
+      message.textContent = 'Ошибка: ' + err.message;
+    }
+  });
+
+  goToUsersBtn.addEventListener('click', () => {
+    window.location.href = 'users.html';
+  });
+</script>
+</body>
+</html>

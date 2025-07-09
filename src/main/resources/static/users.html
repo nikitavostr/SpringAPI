@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Все пользователи</title>
+</head>
+<body>
+<h1>Список пользователей</h1>
+<button id="goHomeBtn">На главную</button>
+<ul id="usersList"></ul>
+
+<script>
+  const usersList = document.getElementById('usersList');
+  const goHomeBtn = document.getElementById('goHomeBtn');
+
+  goHomeBtn.addEventListener('click', () => {
+    window.location.href = 'index.html';
+  });
+
+  async function loadUsers() {
+    try {
+      const resp = await fetch('/api/users');
+      if (!resp.ok) throw new Error('Ошибка при загрузке пользователей');
+      const users = await resp.json();
+
+      usersList.innerHTML = '';
+      users.forEach(user => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <strong>${user.username}</strong> (${user.email}) - ${user.status}
+            <button data-id="${user.id}">Подробнее</button>
+          `;
+        usersList.appendChild(li);
+
+        li.querySelector('button').addEventListener('click', () => {
+          window.location.href = `user.html?id=${user.id}`;
+        });
+      });
+    } catch (err) {
+      usersList.innerHTML = `<li style="color:red;">${err.message}</li>`;
+    }
+  }
+
+  loadUsers();
+</script>
+</body>
+</html>

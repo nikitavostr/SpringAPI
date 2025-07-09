@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Пользователь</title>
+</head>
+<body>
+<h1>Данные пользователя</h1>
+<button id="goBackBtn">Назад к списку</button>
+<div id="userData"></div>
+
+<script>
+  const userDataDiv = document.getElementById('userData');
+  const goBackBtn = document.getElementById('goBackBtn');
+
+  goBackBtn.addEventListener('click', () => {
+    window.location.href = 'users.html';
+  });
+
+  function getUserIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('id');
+  }
+
+  async function loadUser() {
+    const id = getUserIdFromUrl();
+    if (!id) {
+      userDataDiv.textContent = 'ID пользователя не указан';
+      return;
+    }
+
+    try {
+      const resp = await fetch(`/api/users/${id}`);
+      if (!resp.ok) throw new Error('Пользователь не найден');
+
+      const user = await resp.json();
+      userDataDiv.innerHTML = `
+          <p><strong>ID:</strong> ${user.id}</p>
+          <p><strong>Имя:</strong> ${user.username}</p>
+          <p><strong>Email:</strong> ${user.email}</p>
+          <p><strong>Статус:</strong> ${user.status}</p>
+          ${user.avatarUri ? `<img src="${user.avatarUri}" alt="Аватар" width="150"/>` : '<p>Аватар не загружен</p>'}
+        `;
+    } catch (err) {
+      userDataDiv.textContent = 'Ошибка: ' + err.message;
+    }
+  }
+
+  loadUser();
+</script>
+</body>
+</html>
